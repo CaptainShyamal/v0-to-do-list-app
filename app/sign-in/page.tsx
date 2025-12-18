@@ -1,11 +1,65 @@
+"use client"
+
 import { User, Lock, Facebook } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useState, type FormEvent, useEffect } from "react"
+import { useAppStore } from "@/lib/store"
 
 export default function SignInPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const login = useAppStore((state) => state.login)
+  const setUser = useAppStore((state) => state.setUser)
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
+
+  useEffect(() => {
+    if (searchParams.get("registered") === "true") {
+      setSuccessMessage("Registration successful! Please sign in with your credentials.")
+    }
+  }, [searchParams])
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setError("")
+    setSuccessMessage("")
+
+    if (!username || !password) {
+      setError("Please enter both username and password")
+      return
+    }
+
+    const success = login(username, password)
+    if (success) {
+      router.push("/dashboard")
+    } else {
+      setError("Invalid credentials. Please try signing up first.")
+    }
+  }
+
+  const handleSocialLogin = (provider: string) => {
+    // Create a demo user for social login
+    const demoUser = {
+      firstName: "Social",
+      lastName: "User",
+      username: `${provider.toLowerCase()}_user`,
+      email: `user@${provider.toLowerCase()}.com`,
+      contactNumber: "",
+      position: "User",
+      avatar: "",
+    }
+
+    setUser(demoUser)
+    router.push("/dashboard")
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FF7B6B] p-6">
       <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden grid md:grid-cols-2">
@@ -13,7 +67,7 @@ export default function SignInPage() {
         <div className="hidden md:flex items-center justify-center bg-[#FF7B6B] p-12">
           <div className="relative w-full h-full flex items-center justify-center">
             <Image
-              src="/images/login-illustration.png"
+              src="/images/login.png"
               alt="Login illustration"
               width={500}
               height={600}
@@ -27,13 +81,27 @@ export default function SignInPage() {
           <div className="w-full max-w-md mx-auto">
             <h1 className="text-4xl font-bold mb-8 text-foreground">Sign In</h1>
 
-            <form className="space-y-6">
+            {successMessage && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                {successMessage}
+              </div>
+            )}
+
+            {error && (
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            <form className="space-y-6" onSubmit={handleSubmit}>
               {/* Username Input */}
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground" />
                 <Input
                   type="text"
                   placeholder="Enter Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="pl-12 h-14 bg-white border-2 border-border rounded-xl"
                 />
               </div>
@@ -44,6 +112,8 @@ export default function SignInPage() {
                 <Input
                   type="password"
                   placeholder="Enter Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="pl-12 h-14 bg-white border-2 border-border rounded-xl"
                 />
               </div>
@@ -57,7 +127,10 @@ export default function SignInPage() {
               </div>
 
               {/* Login Button */}
-              <Button className="w-full h-14 bg-primary hover:bg-primary/90 text-white text-base font-semibold rounded-xl">
+              <Button
+                type="submit"
+                className="w-full h-14 bg-primary hover:bg-primary/90 text-white text-base font-semibold rounded-xl"
+              >
                 Login
               </Button>
 
@@ -66,15 +139,19 @@ export default function SignInPage() {
                 <p className="text-sm text-foreground">Or, Login with</p>
                 <div className="flex gap-4">
                   <Button
+                    type="button"
                     variant="outline"
                     size="icon"
+                    onClick={() => handleSocialLogin("Facebook")}
                     className="h-12 w-12 rounded-lg border-2 hover:bg-muted bg-transparent"
                   >
                     <Facebook className="h-5 w-5 text-blue-600" />
                   </Button>
                   <Button
+                    type="button"
                     variant="outline"
                     size="icon"
+                    onClick={() => handleSocialLogin("Google")}
                     className="h-12 w-12 rounded-lg border-2 hover:bg-muted bg-transparent"
                   >
                     <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -97,8 +174,10 @@ export default function SignInPage() {
                     </svg>
                   </Button>
                   <Button
+                    type="button"
                     variant="outline"
                     size="icon"
+                    onClick={() => handleSocialLogin("X")}
                     className="h-12 w-12 rounded-lg border-2 hover:bg-muted bg-transparent"
                   >
                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
