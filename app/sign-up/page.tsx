@@ -16,7 +16,6 @@ export default function SignUpPage() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -32,7 +31,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     e.preventDefault()
     setError("")
 
-    if (!formData.firstName || !formData.lastName || !formData.username || !formData.email || !formData.password) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
       setError("Please fill in all fields")
       return
     }
@@ -55,7 +54,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false)
       options: {
         data: {
           full_name: `${formData.firstName} ${formData.lastName}`,
-          username: formData.username,
+          
         },
       },
     })
