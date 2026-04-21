@@ -66,6 +66,8 @@ export function AddTaskDialog({ open, onOpenChange ,onSuccess}: AddTaskDialogPro
       image: form.image,
     })
 
+    await fetch("/api/tasks/clear-cache", { method: "POST", body: JSON.stringify({ userId: auth.user.id }) })
+
     onOpenChange(false)
     onSuccess()
 
@@ -132,6 +134,11 @@ export function EditTaskDialog({ open, onOpenChange, task , onSuccess }: EditTas
         image: form.image,
       })
       .eq("id", task.id)
+
+    const { data: auth } = await supabase.auth.getUser()
+    if (auth.user) {
+      await fetch("/api/tasks/clear-cache", { method: "POST", body: JSON.stringify({ userId: auth.user.id }) })
+    }
 
     onOpenChange(false)
     onSuccess()

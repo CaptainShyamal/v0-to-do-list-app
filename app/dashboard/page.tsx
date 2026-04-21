@@ -118,27 +118,24 @@ export default function DashboardPage() {
     const { data: auth } = await supabase.auth.getUser()
     if (!auth.user) return
 
-    const { data, error } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("user_id", auth.user.id)
-      .order("created_at", { ascending: false })
-
-    if (error) {
+    try {
+      const res = await fetch(`/api/tasks?userId=${auth.user.id}`)
+      const data = await res.json()
+      setTasks(data || [])
+    } catch (error) {
       console.error("Load tasks error:", error)
-      return
     }
-
-    setTasks((data || []) as Task[])
   }
 
   const deleteTask = async (id: string) => {
     await supabase.from("tasks").delete().eq("id", id)
+    await fetch("/api/tasks/clear-cache", { method: "POST", body: JSON.stringify({ userId: user?.id }) })
     loadTasks()
   }
 
   const markCompleted = async (id: string) => {
     await supabase.from("tasks").update({ status: "Completed" }).eq("id", id)
+    await fetch("/api/tasks/clear-cache", { method: "POST", body: JSON.stringify({ userId: user?.id }) })
     loadTasks()
   }
 
